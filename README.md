@@ -3,7 +3,7 @@ xmlnuke-php5-installer
 
 ### Information
 
-XMLNuke PHP5 Installer is a Web Interface to aid the XMLNuke install process. 
+XMLNuke PHP5 Installer is a Web Interface to automate the XMLNuke install process. 
 *This is in beta stage, any contribution is welcome.*
 
 
