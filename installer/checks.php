@@ -137,13 +137,78 @@ function getValue($key, $array = null)
 
 function commandExists($cmd)
 {
-	if (PHP_OS == 'Linux')
+	if (!isWindows())
 	{
 		$returnVal = shell_exec("which $cmd");
 		return (empty($returnVal) ? false : true);	
 	}
 	else
 		return false;
+}
+
+function isWindows()
+{
+	return (strpos(strtolower(PHP_OS), 'win') !== false) && (strpos(strtolower(PHP_OS), 'cyg') === false);
+}
+
+function downloadFile($url, $checkMd5 = true)
+{
+	$userAgent = 'Googlebot/2.1 (http://www.googlebot.com/bot.html)';  
+	$file = sys_get_temp_dir() . '/' . basename($url);
+	
+	// File already download
+	if (file_exists($file))
+		return $file;
+
+	// make the cURL request to $url  
+	$ch = curl_init();  
+	$fp = fopen($file . '.download', "w");  
+	curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);  
+	curl_setopt($ch, CURLOPT_URL,$url);  
+	curl_setopt($ch, CURLOPT_FAILONERROR, true);  
+	curl_setopt($ch, CURLOPT_HEADER,0);  
+	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);  
+	curl_setopt($ch, CURLOPT_AUTOREFERER, true);  
+	curl_setopt($ch, CURLOPT_BINARYTRANSFER,true);  
+	curl_setopt($ch, CURLOPT_TIMEOUT, 10);  
+	curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, 0);  
+	curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 0);   
+	curl_setopt($ch, CURLOPT_FILE, $fp);  
+	$page = curl_exec($ch);  
+	if (!$page) 
+	{  
+		return false;
+	}  
+	curl_close($ch); 
+	
+	rename($file . '.download', $file);
+	
+	return $file;
+}
+
+function loadFile($filename)
+{
+	$handle = fopen($filename, "r");
+	$contents = fread($handle, filesize($filename));
+	fclose($handle);
+	
+	return $contents;
+}
+
+function unzipFile($file, $extractTo)
+{
+	$zip = new ZipArchive;  
+	if (!$zip) 
+	{  
+		return false;
+	}  
+	
+	if($zip->open($file) != true) 
+	{  
+		return false;
+	}  
+	$zip->extractTo($extractTo); 
+	$zip->close(); 								
 }
 
 ?>

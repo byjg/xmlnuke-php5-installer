@@ -1,5 +1,7 @@
 <?php
 
+define('XMLNUKE_RELEASES', 'http://www.xmlnuke.com/site/releases/releases.json');
+
 function getExtensions()
 {
 

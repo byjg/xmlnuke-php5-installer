@@ -2,6 +2,7 @@
 
 function showStep1()
 {
+
 	$projectPath = dirname(dirname($_SERVER['SCRIPT_FILENAME']));
 	if (file_exists($projectPath . '/config.inc.php') && (getValue("xmlnuke-path") == ""))
 	{
@@ -21,18 +22,37 @@ function showStep1()
 	
 	writeSection("Define XMLNuke Path");
 
-	writeInputText("xmlnuke-path", "XMLNuke Path", $xmlnukePath, "e.g. /opt/xmlnuke", 
+	writeInputText("xmlnuke-path", "XMLNuke Path", $xmlnukePath, 
+			(!isWindows() ? "e.g. /opt/xmlnuke" : "e.g. d:\xmlnuke"), 
 			"Define here the main path of XMLNuke project. You can get this" .
 			"path from SCM repository or by downloading the ZIP package.");
 
 	$options = array();
 	$options["no"] = 'Do not try to create the path';
-	
-	if (commandExists('svn'))
-		$options["yes"] = 'Try to create and install from main repository';
-	//if (extension_loaded('curl') && commandExists('unzip'))
-	//	$options["dnld"] = 'Try to create and download from URL below';
-	
+
+	$releasesJson = downloadFile(XMLNUKE_RELEASES);
+	if ($releasesJson !== false)
+	{
+		$releases = json_decode(loadFile($releasesJson));
+		foreach ($releases->releases as $release)
+		{
+			foreach ($release->sources as $source)
+			{
+				switch ($source->type)
+				{
+					case "from-repo":
+						if (commandExists('svn'))
+							$options[$release->name . ":from-repo"] = $source->description;
+						break;
+					
+					case "download":
+						if (extension_loaded('curl') && extension_loaded('zip'))
+							$options[$release->name . ":download"] = $source->description;
+						break;
+				}
+			}
+		}
+	}
 	
 	writeInputSelect('xmlnuke-create', 'Try to create path if not exists?', 
 			$options,
@@ -47,8 +67,9 @@ function showStep1()
 	
 	writeSection("Define Project Settings");
 
-	writeInputText("project-path", "Project Path", $projectPath, "e.g. /var/www", 
-			"Define the path of your XMLNuke project. You can create and " . 
+	writeInputText("project-path", "Project Path", $projectPath, 
+			(!isWindows() ? "e.g. /var/www" : "e.g. c:\Inetpub\wwwroot"), 
+			"Define the path of your project. You can create and " . 
 			"configure a new project after.");
 	
 	writeInputSelect('project-create', 'Try to create path if not exists?', 
@@ -82,30 +103,57 @@ function validateStep1($nextStep)
 	$errorList = array();
 	$step = $nextStep;
 	
-	if (($xmlnukePath == "") || !file_exists($xmlnukePath))
+	if ($xmlnukePath != "")
 	{
-		if ((getValue("xmlnuke-create") == "yes") && (commandExists("svn")))
+		if ((getValue("xmlnuke-create") != "no") || file_exists($xmlnukePath))
 		{
-			$result = @mkdir($xmlnukePath, 0777, true);
-			if ($result)
+			$releasesJson = downloadFile(XMLNUKE_RELEASES);
+			if ($releasesJson !== false)
 			{
-				shell_exec ("svn checkout http://svn.code.sf.net/p/xmlnuke/code/trunk '$xmlnukePath'");
-				shell_exec ("$xmlnukePath/copy-dist-files.sh link");
+				$releases = json_decode(loadFile($releasesJson));
+				foreach ($releases->releases as $release)
+				{
+					foreach ($release->sources as $source)
+					{
+						if (getValue("xmlnuke-create") == $release->name . ":" . $source->type)
+						{
+							if (!file_exists($xmlnukePath))
+								$result = @mkdir($xmlnukePath, 0777, true);
+							else
+								$result = true;
+								
+							if ($result)
+							{
+								switch ($source->type)
+								{
+									case "from-repo":
+										shell_exec ("svn checkout " . $source->url . " '$xmlnukePath'");
+										shell_exec ("$xmlnukePath/copy-dist-files.sh link");
+										break;
+									
+									case "download":
+										$zipFile = downloadFile($source->url);
+										if (!$zipFile)
+											$errorList[] = "I cannot download the package in '" . $source->url . "";
+										else
+											unzipFile($zipFile, $xmlnukePath);
+										break;
+									default:
+										$errorList[] = "I cannot find the type '" . $source->type . "' in the releases.json";
+										break;
+								}
+							}
+							else
+								$errorList[] = "I cannot create the XMLNuke path '" . $xmlnukePath . "'";
+						}
+					}
+				}
 			}
 			else
-				$errorList[] = "The XMLNUke path does not exists and I cannot create one; You have to give write permissions to this script in order to enable the installation.";
-		}/*
-		elseif ((getValue("xmlnuke-create") == "dnld") && (commandExists("unzip")) && extension_loaded("curl"))
-		{
-			$result = @mkdir($xmlnukePath, 0777, true);
-			if ($result)
-			{
-			}
-			else
-				$errorList[] = "The XMLNUke path does not exists and cannot create one;";
-		}*/
+				$errorList[] = "I cannot read the XMLNuke releases.json";			
+		}
 		else
-			$errorList[] = "The XMLNUke path does not exists and you do not select an alternate install method. Check if the directory is correct;";
+			$errorList[] = "The XMLNuke path does not exists and you do not select an alternate install method. Check if the directory is correct;";
 		
 		if (count($errorList) > 0)
 			$step = $nextStep - 1;
@@ -117,13 +165,18 @@ function validateStep1($nextStep)
 		$step = $nextStep - 1;
 	}
 	
-	if (($projectPath == "") || !file_exists($projectPath))
+	if (($projectPath != "") && !file_exists($projectPath))
 	{
 		if (getValue("project-create") == "yes")
 		{
-			if  (!commandExists("$xmlnukePath/create-php5-project.sh"))
+			if ($xmlnukePath == "")
 			{
-				$errorList[] = "The XMLNuke path '$xmlnukePath' you provided does not contain a valid XMLNuke project or it does not complete. Please check it and return here. ";
+				$errorList[] = "The XMLNuke path is empty. Cannot create a project.;";
+				$step = $nextStep - 1;				
+			}
+			elseif  (!commandExists("$xmlnukePath/create-php5-project.sh"))
+			{
+				$errorList[] = "The XMLNuke path '$xmlnukePath' you provided does not contain a valid XMLNuke project or it does not complete. Please check it and try again. ";
 				$step = $nextStep - 1;				
 			}
 			else
@@ -132,6 +185,7 @@ function validateStep1($nextStep)
 				if ($result)
 				{
 					$rootNamespace = getValue("project-lib-name");
+					// Fix the name 
 					$rootNamespace =  preg_replace('/\.+$/', '', 
 										preg_replace('/^\.+/', '', 
 											preg_replace('/(\.)\1+/', '.', 
