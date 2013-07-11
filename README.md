@@ -10,11 +10,11 @@ XMLNuke PHP5 Installer is a Web Interface to aid the XMLNuke install process.
 ### Install & Run
 
 - Download the folder 'installer' into a folder in your Web Server. 
-- Access from your web browser: http://your-server/same-folder/installer
+- Access from your web browser: http://your-server/some-folder/installer
 
 ### Requirements to run the Installer
 
-- The installer needs write permission in the XMLNuke path and in the Project Path choosen;
+- The installer needs write permission in the XMLNuke path and in the Project Path;
 - The command 'exec' is required for create a PHP5 project from scratch; 
 - Download the XMLNuke from the repository is a good choose for maintain your framework updated, 
   but requires the subversion installed in your server ;
