@@ -86,7 +86,7 @@ function showStep1()
 			"available only in Linux "
 	);
 	
-	writeInputText("project-lib-name", "Default project root namespace (lib)", "", "e.g. default", 
+	writeInputText("project-lib-name", "Default project root namespace (lib)", getValue("project-lib-name"), "e.g. default",
 			"Defines what is the default project root namespace for the folder lib of your project");
 	
 	writeInputSelect('project-langs', 'Select the languages available to project', 
@@ -107,7 +107,7 @@ function validateStep1($nextStep)
 	$message = "";
 	$errorList = array();
 	$step = $nextStep;
-	
+
 	if ($xmlnukePath != "")
 	{
 		if ((getValue("xmlnuke-create") != "no") || file_exists($xmlnukePath))
@@ -168,14 +168,14 @@ function validateStep1($nextStep)
 		if (count($errorList) > 0)
 			$step = $nextStep - 1;
 	}
-	
+
 	if ((count($errorList) == 0) && (!file_exists($xmlnukePath . "/xmlnuke-php5") || !file_exists($xmlnukePath . "/xmlnuke-common") || !file_exists($xmlnukePath . "/xmlnuke-data")))
 	{
 		$errorList[] = "The path provided does not appear to be a valid XMLNuke library;";
 		$step = $nextStep - 1;
 	}
 	
-	if (($projectPath != "") && !file_exists($projectPath))
+	if (($projectPath != "") && (!file_exists($projectPath . '/config.inc.php') || (!file_exists($projectPath . '/xmlnuke.inc.php') || !file_exists($projectPath . '/xmlnuke.php'))))
 	{
 		if (getValue("project-create") == "yes")
 		{
@@ -184,34 +184,58 @@ function validateStep1($nextStep)
 				$errorList[] = "The XMLNuke path is empty. Cannot create a project.;";
 				$step = $nextStep - 1;				
 			}
-			elseif  (!commandExists("$xmlnukePath/create-php5-project.sh"))
+			elseif  (!file_exists("$xmlnukePath/create-php5-project.php"))
 			{
 				$errorList[] = "The XMLNuke path '$xmlnukePath' you provided does not contain a valid XMLNuke project or it does not complete. Please check it and try again. ";
 				$step = $nextStep - 1;				
 			}
 			else
 			{
-				$result = @mkdir($projectPath, 0777, true);
+				if (!file_exists($projectPath))
+					$result = @mkdir($projectPath, 0777, true);
+				else
+					$result = true;
+
 				if ($result)
 				{
-					$rootNamespace = getValue("project-lib-name");
-					// Fix the name 
-					$rootNamespace =  preg_replace('/\.+$/', '', 
-										preg_replace('/^\.+/', '', 
-											preg_replace('/(\.)\1+/', '.', 
-												preg_replace('/[^\w]/', '.', 
-													strtolower($rootNamespace)))));
-					if ($rootNamespace == "") $rootNamespace = "default";
-
-					$key = "project-langs";
-					$qty = intval($_POST[$key]);
-					$langs = "";
-					for($i=0; $i<$qty; $i++)
+					if (!is_writable($projectPath))
 					{
-						if ($_POST[$key . $i] != "") $langs .= ($langs!="" ? " " : "") . $_POST[$key . $i];
+						$errorList[] = "The Project path '$projectPath' already exists but is not writeable and I cannot go on. ";
+						$step = $nextStep - 1;
 					}
+					else
+					{
 
-					shell_exec ("$xmlnukePath/create-php5-project.sh '$projectPath' default $rootNamespace $langs");
+						$rootNamespace = getValue("project-lib-name");
+						// Fix the name
+						$rootNamespace =  preg_replace('/\.+$/', '',
+											preg_replace('/^\.+/', '',
+												preg_replace('/(\.)\1+/', '.',
+													preg_replace('/[^\w]/', '.',
+														strtolower($rootNamespace)))));
+						if ($rootNamespace == "") $rootNamespace = "default";
+
+						$key = "project-langs";
+						$qty = intval($_POST[$key]);
+						$langs = array();
+						for($i=0; $i<$qty; $i++)
+						{
+							if ($_POST[$key . $i] != "") $langs[] = $_POST[$key . $i];
+						}
+
+						include_once "$xmlnukePath/create-php5-project.php";
+
+						try
+						{
+							$params = array_merge( array(__FILE__, $projectPath, 'default', $rootNamespace), $langs );
+							call_user_func_array( array( 'CreatePhp5Project', 'Run' ), $params );
+						}
+						catch (Exception $ex)
+						{
+							$errorList[] = $ex->getMessage();
+							$step = $nextStep - 1;
+						}
+					}
 				}
 				else
 				{
