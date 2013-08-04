@@ -40,11 +40,16 @@ function showStep1()
 			{
 				switch ($source->type)
 				{
-					case "from-repo":
+					case "svn-repo":
 						if (commandExists('svn'))
-							$options[$release->name . ":from-repo"] = $source->description;
+							$options[$release->name . ":svn-repo"] = $source->description;
 						break;
 					
+					case "git-repo":
+						if (commandExists('git'))
+							$options[$release->name . ":git-repo"] = $source->description;
+						break;
+
 					case "download":
 						if (extension_loaded('curl') && extension_loaded('zip'))
 							$options[$release->name . ":download"] = $source->description;
@@ -126,7 +131,12 @@ function validateStep1($nextStep)
 							{
 								switch ($source->type)
 								{
-									case "from-repo":
+									case "git-repo":
+										shell_exec ("git clone " . $source->url . " '$xmlnukePath'");
+										shell_exec ("$xmlnukePath/copy-dist-files.sh link");
+										break;
+
+									case "svn-repo":
 										shell_exec ("svn checkout " . $source->url . " '$xmlnukePath'");
 										shell_exec ("$xmlnukePath/copy-dist-files.sh link");
 										break;

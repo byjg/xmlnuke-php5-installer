@@ -176,7 +176,8 @@ function downloadFile($url, $checkMd5 = true)
 	curl_setopt($ch, CURLOPT_FILE, $fp);  
 	$page = curl_exec($ch);  
 	if (!$page) 
-	{  
+	{
+		//echo 'Curl error: ' . curl_error($ch);
 		return false;
 	}  
 	curl_close($ch); 

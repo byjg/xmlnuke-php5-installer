@@ -1,0 +1,24 @@
+{
+   "releases":[
+      {
+         "name":"latest",
+         "sources":[
+            {
+               "description":"SVN Repository (+)(dev stable)",
+               "type":"svn-repo",
+               "url":"https://github.com/byjg/xmlnuke/trunk"
+            },
+            {
+               "description":"Git Repository (+)(dev stable)",
+               "type":"git-repo",
+               "url":"https://github.com/byjg/xmlnuke/trunk"
+            },
+            {
+               "description":"Download (dev stable)",
+               "type":"download",
+               "url":"https://github.com/byjg/xmlnuke/archive/master.zip"
+            }
+         ]
+      }
+   ]
+}

@@ -57,7 +57,7 @@ require_once("ui-html.php");
 				<input type="hidden" name="project-path" value="<?php echo $projectPath ?>" />
 
 				<div class="form_description">
-					<center><img src="http://www.xmlnuke.com/common/imgs/logo_xmlnuke2.gif" border="0" style="margin-bottom: 20px;" /></center>
+					<center><img src="imgs/logo_xmlnuke.gif" border="0" style="margin-bottom: 20px;" /></center>
 
 					<h2>XMLNuke PHP5 Installer - <?php echo $stepConfig[$step]["title"]; ?></h2>
 					<p>This script will aid you to install and setup your XMLNuke copy. Follow the steps to complete the install process.</p>

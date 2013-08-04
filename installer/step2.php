@@ -85,9 +85,9 @@ function showStep2()
 		$configValues["xmlnuke.PHPLIBDIR"] = "";
 		$configValues["xmlnuke.PHPXMLNUKEDIR"] = "";
 
-		if (file_exists("$projectPath/config.default.php"))
+		if (file_exists("$projectPath/config.inc-dist.php"))
 		{
-		        include_once("$projectPath/config.default.php");
+		        include_once("$projectPath/config.inc-dist.php");
 		}
 	}
 
