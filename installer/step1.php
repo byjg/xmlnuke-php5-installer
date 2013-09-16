@@ -177,77 +177,79 @@ function validateStep1($nextStep)
 	
 	if (($projectPath != "") && (!file_exists($projectPath . '/config.inc.php') || (!file_exists($projectPath . '/xmlnuke.inc.php') || !file_exists($projectPath . '/xmlnuke.php'))))
 	{
-		if (getValue("project-create") == "yes")
+		$createProject = (getValue("project-create") == "yes");
+
+		if ($xmlnukePath == "")
 		{
-			if ($xmlnukePath == "")
+			$errorList[] = "The XMLNuke path is empty. Cannot create a project.;";
+			$step = $nextStep - 1;
+		}
+		elseif  (!file_exists("$xmlnukePath/create-php5-project.php"))
+		{
+			$errorList[] = "The XMLNuke path '$xmlnukePath' you provided does not contain a valid XMLNuke project or it does not complete. Please check it and try again. ";
+			$step = $nextStep - 1;
+		}
+		elseif (!$createProject)
+		{
+			if (!file_exists($projectPath))
 			{
-				$errorList[] = "The XMLNuke path is empty. Cannot create a project.;";
-				$step = $nextStep - 1;				
-			}
-			elseif  (!file_exists("$xmlnukePath/create-php5-project.php"))
-			{
-				$errorList[] = "The XMLNuke path '$xmlnukePath' you provided does not contain a valid XMLNuke project or it does not complete. Please check it and try again. ";
-				$step = $nextStep - 1;				
-			}
-			else
-			{
-				if (!file_exists($projectPath))
-					$result = @mkdir($projectPath, 0777, true);
-				else
-					$result = true;
-
-				if ($result)
-				{
-					if (!is_writable($projectPath))
-					{
-						$errorList[] = "The Project path '$projectPath' already exists but is not writeable and I cannot go on. ";
-						$step = $nextStep - 1;
-					}
-					else
-					{
-
-						$rootNamespace = getValue("project-lib-name");
-						// Fix the name
-						$rootNamespace =  preg_replace('/\.+$/', '',
-											preg_replace('/^\.+/', '',
-												preg_replace('/(\.)\1+/', '.',
-													preg_replace('/[^\w]/', '.',
-														strtolower($rootNamespace)))));
-						if ($rootNamespace == "") $rootNamespace = "default";
-
-						$key = "project-langs";
-						$qty = intval($_POST[$key]);
-						$langs = array();
-						for($i=0; $i<$qty; $i++)
-						{
-							if ($_POST[$key . $i] != "") $langs[] = $_POST[$key . $i];
-						}
-
-						include_once "$xmlnukePath/create-php5-project.php";
-
-						try
-						{
-							$params = array_merge( array(__FILE__, $projectPath, 'default', $rootNamespace), $langs );
-							call_user_func_array( array( 'CreatePhp5Project', 'Run' ), $params );
-						}
-						catch (Exception $ex)
-						{
-							$errorList[] = $ex->getMessage();
-							$step = $nextStep - 1;
-						}
-					}
-				}
-				else
-				{
-					$errorList[] = "The Project path does not exists and I cannot create one; You have to give write permissions to this script in order to enable the installation.";
-					$step = $nextStep - 1;
-				}
+				$errorList[] = "The project path does not exist and you chose not to create an empty project.";
+				$step = $nextStep - 1;
 			}
 		}
 		else
 		{
-			$errorList[] = "The project path does not exists, please choose another directory or try to create using this script; ";
-			$step = $nextStep - 1;
+			if (!file_exists($projectPath))
+				$result = @mkdir($projectPath, 0777, true);
+			else
+				$result = true;
+
+			if ($result)
+			{
+				if (!is_writable($projectPath))
+				{
+					$errorList[] = "The Project path '$projectPath' already exists but is not writeable and I cannot go on. ";
+					$step = $nextStep - 1;
+				}
+				else
+				{
+
+					$rootNamespace = getValue("project-lib-name");
+					// Fix the name
+					$rootNamespace =  preg_replace('/\.+$/', '',
+										preg_replace('/^\.+/', '',
+											preg_replace('/(\.)\1+/', '.',
+												preg_replace('/[^\w]/', '.',
+													strtolower($rootNamespace)))));
+					if ($rootNamespace == "") $rootNamespace = "default";
+
+					$key = "project-langs";
+					$qty = intval($_POST[$key]);
+					$langs = array();
+					for($i=0; $i<$qty; $i++)
+					{
+						if ($_POST[$key . $i] != "") $langs[] = $_POST[$key . $i];
+					}
+
+					include_once "$xmlnukePath/create-php5-project.php";
+
+					try
+					{
+						$params = array_merge( array(__FILE__, $projectPath, 'default', $rootNamespace), $langs );
+						call_user_func_array( array( 'CreatePhp5Project', 'Run' ), $params );
+					}
+					catch (Exception $ex)
+					{
+						$errorList[] = $ex->getMessage();
+						$step = $nextStep - 1;
+					}
+				}
+			}
+			else
+			{
+				$errorList[] = "The Project path does not exists and I cannot create one; You have to give write permissions to this script in order to enable the installation.";
+				$step = $nextStep - 1;
+			}
 		}
 	}
 
