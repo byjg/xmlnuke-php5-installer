@@ -74,6 +74,7 @@ function showStep2()
 		$configValues["xmlnuke.USERSDATABASE"]="";
 		$configValues["xmlnuke.USERSCLASS"]="";
 		$configValues["xmlnuke.DEBUG"] = false;
+		$configValues["xmlnuke.DEVELOPMENT"] = true;
 		$configValues["xmlnuke.CAPTCHACHALLENGE"] = "hard";
 		$configValues["xmlnuke.CAPTCHALETTERS"] = 5;
 		$configValues["xmlnuke.ENABLEPARAMPROCESSOR"] = true;
@@ -180,6 +181,9 @@ function showStep2()
 
 	writeInputData($configValues, "xmlnuke.DEBUG",
 		"Put XMLNuke in Debug mode", 2);
+
+	writeInputData($configValues, "xmlnuke.DEVELOPMENT",
+		"Enable/Disable the development mode where de error messages are more detailed", 2);
 
     writeInputData($configValues, "xmlnuke.CAPTCHACHALLENGE",
     	"How will be the captcha challenge question.", 3, null,
