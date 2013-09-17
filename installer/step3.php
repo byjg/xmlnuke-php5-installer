@@ -17,7 +17,7 @@ function showStep3()
 	
 	$data[] = array(
 		"id"=>'element',
-		"label" => "Create a symbolic link (GOOD): ln -s \"$xmlnukePath/xmlnuke-common\" \"$projectPath/common\" ",
+		"label" => "Create a symbolic link (GOOD): ln -s \"$xmlnukePath" . DIRECTORY_SEPARATOR . "xmlnuke-common\" \"$projectPath" . DIRECTORY_SEPARATOR . "common\" ",
 		"value" => '1',
 		"checked" => false,
 		"disabled" => true
@@ -25,7 +25,7 @@ function showStep3()
 	
 	$data[] = array(
 		"id"=>'element',
-		"label" => "Setup a virtual directory 'common' pointing to '$xmlnukePath/xmlnuke-common'. (e.g. Alias /common \"$xmlnukePath/xmlnuke-common\"",
+		"label" => "Setup a virtual directory 'common' pointing to '$xmlnukePath" . DIRECTORY_SEPARATOR . "xmlnuke-common'. (e.g. Alias /common \"$xmlnukePath" . DIRECTORY_SEPARATOR . "xmlnuke-common\"",
 		"value" => '1',
 		"checked" => false,
 		"disabled" => true
@@ -33,16 +33,16 @@ function showStep3()
 	
 	$data[] = array(
 		"id"=>'element',
-		"label" => "Copy ALL contents from '$xmlnukePath/xmlnuke-common\' to '$projectPath/common' (worst scenario) ",
+		"label" => "Copy ALL contents from '$xmlnukePath" . DIRECTORY_SEPARATOR . "xmlnuke-common\' to '$projectPath" . DIRECTORY_SEPARATOR . "common' (worst scenario) ",
 		"value" => '1',
 		"checked" => false,
 		"disabled" => true
 	);
+
+	echo '<img src="common/imgs/logo_xmlnuke.gif" alt="If you dont see the image, please follow the steps bellow" onerror="this.src=\'imgs/error.gif\';"/><br/>';
 	
 	writeInputMultipleList('radio', 'review', 'Make the folder /common accessible from your web browser (e.g. http://server/yourproject/common) :', $data, 
 			"Without this option some xmlnuke components and images will not work as expected. This is very important task. Choose one of the options bellow.");
-
-	
 	
 	writeSection("Optional Steps");
 	
@@ -57,7 +57,7 @@ function showStep3()
 	);
 	$data[] = array(
 		"id"=>'element',
-		"label" => "Make the xmlnuke data path '$xmlnukePath/xmlnuke-data' writable",
+		"label" => "Make the xmlnuke data path '$xmlnukePath" . DIRECTORY_SEPARATOR . "xmlnuke-data' writable",
 		"value" => '1',
 		"checked" => is_writable($xmlnukePath . "/xmlnuke-data"),
 		"disabled" => true
@@ -71,7 +71,7 @@ function showStep3()
 	);
 	$data[] = array(
 		"id"=>'element',
-		"label" => "Make the project data path '$projectPath/data' writable",
+		"label" => "Make the project data path '$projectPath" . DIRECTORY_SEPARATOR . "data' writable",
 		"value" => '1',
 		"checked" => is_writable($projectPath . "/data"),
 		"disabled" => true

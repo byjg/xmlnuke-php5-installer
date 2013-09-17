@@ -1,6 +1,9 @@
 <?php
 
-define('XMLNUKE_RELEASES', "http://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['DOCUMENT_URI']) . '/releases/releases.json');
+define('XMLNUKE_RELEASES', 
+		"http://" . $_SERVER['HTTP_HOST'] . 
+		dirname(isset($_SERVER['DOCUMENT_URI']) ? $_SERVER['DOCUMENT_URI'] : $_SERVER['REQUEST_URI']) . 
+		'/releases/releases.json');
 
 function getExtensions()
 {

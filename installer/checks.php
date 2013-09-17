@@ -154,7 +154,7 @@ function isWindows()
 function downloadFile($url, $checkMd5 = true)
 {
 	$userAgent = 'Googlebot/2.1 (http://www.googlebot.com/bot.html)';  
-	$file = sys_get_temp_dir() . '/' . basename($url);
+	$file = sys_get_temp_dir() . DIRECTORY_SEPARATOR . basename($url);
 	
 	// File already download
 	if (file_exists($file))
@@ -181,6 +181,9 @@ function downloadFile($url, $checkMd5 = true)
 		return false;
 	}  
 	curl_close($ch); 
+	
+	if ($fp)
+		fclose($fp);
 	
 	rename($file . '.download', $file);
 	
